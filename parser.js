@@ -10,16 +10,14 @@
 //infix operators: +, * (but w/ higher binding power)
 
 //to associate symbols with a binding power, nud, or led
-function parser(tokens) {
-  let parseTree = [];
-  let symbols = {}; //symbols determine the type of tokens in the language
+export default class Parser {
+  constructor(tokens) {
+    this.tokens = tokens;
+    this.symbols = {};
+    this.parseTree = [];
+  }
 
-  function symbol(
-    id,
-    leftBindingPower,
-    nullDenotativeFunction,
-    leftDenotativeFunction
-  ) {
+  symbol(id, leftBindingPower, nullDenotativeFunction, leftDenotativeFunction) {
     let symbol = symbols[id] || {};
     symbols[id] = {
       leftBindingPower: symbol.leftBindingPower || leftBindingPower,
@@ -31,35 +29,28 @@ function parser(tokens) {
   }
 
   //associate token with corresponding symbol
-  function interpretToken(token) {
+  interpretToken(token) {
     return {
       type: token.type,
       value: token.value,
     };
   }
 
-  function createParseTree(rbp) {
+  createParseTree(rbp) {
     for (let i = 0; i < tokens.length; i++) {
       //code
     }
   }
 
   //creates infix arithmetic operators (i.e. those that go in between numbers)
-  function infix(
-    id,
-    leftBindingPower,
-    rightBindingPower,
-    leftDenotativeFunction
-  ) {
+  infix(id, leftBindingPower, rightBindingPower, leftDenotativeFunction) {
     //code
   }
 
   //creates prefix arithmetic operators (i.e. those that go before numbers)
-  function prefix(id, rightBindingPower) {
+  prefix(id, rightBindingPower) {
     //code
   }
-
-  return parseTree;
 }
 
 // precedence values gathered from http://crockford.com/javascript/tdop/tdop.html
