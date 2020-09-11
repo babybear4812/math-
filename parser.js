@@ -14,6 +14,14 @@ export default class Parser {
   constructor(tokens) {
     this.tokens = tokens;
     this.symbols = {};
+    this.defaultSymbol = {
+      nullDenotativePower: function () {
+        this.error('Undefined');
+      },
+      leftDenotativePower: function (left) {
+        this.error('Missing Operator');
+      },
+    };
     this.parseTree = [];
   }
 
@@ -40,16 +48,35 @@ export default class Parser {
     for (let i = 0; i < tokens.length; i++) {
       //code
     }
+    return this.parseTree;
   }
 
   //creates infix arithmetic operators (i.e. those that go in between numbers)
   infix(id, leftBindingPower, rightBindingPower, leftDenotativeFunction) {
-    //code
+    rightBindingPower = rightBindingPower || leftBindingPower;
+    this.symbol(
+      id,
+      leftBindingPower,
+      null,
+      leftDenotativeFunction ||
+        function (left) {
+          return {
+            type: id,
+            left,
+            right: expression(rightBindingPower),
+          };
+        }
+    );
   }
 
   //creates prefix arithmetic operators (i.e. those that go before numbers)
   prefix(id, rightBindingPower) {
-    //code
+    this.symbol(id, function () {
+      return {
+        type: id,
+        right: expression(rightBindingPower),
+      };
+    });
   }
 }
 
