@@ -44,7 +44,7 @@ export default class Parser {
     };
   }
 
-  createParseTree(rbp) {
+  createParseTree() {
     for (let i = 0; i < tokens.length; i++) {
       //code
     }

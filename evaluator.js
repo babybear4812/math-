@@ -1,7 +1,10 @@
+import Lexer from './lexer';
+import Parser from './parser';
 import operators from './operators';
 import functions from './functions';
 import operators from './operators';
 import specialConstants from './specialConstants';
+import Parser from './parser';
 
 export default class Evaluator {
   constructor(parseTree) {
@@ -19,5 +22,17 @@ export default class Evaluator {
       typeof value !== 'undefined' ? (output += value + '\n') : '';
     }
     return output;
+  }
+
+  calculate(input) {
+    try {
+      const lexer = new Lexer(input);
+      const tokens = lexer.tokenize();
+
+      const parser = new Parser(tokens);
+      const parseTree = parser.createParseTree();
+    } catch (error) {
+      return error;
+    }
   }
 }
