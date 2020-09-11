@@ -15,57 +15,58 @@ export default class Lexer {
     });
   }
 
-  isNumber(input) {
-    return input.match(/[0-9]/);
+  isNumber() {
+    return this.input.match(/[0-9]/);
   }
 
-  isOperator(input) {
-    return input.match(/[+\-*\/\^%=()]/);
+  isOperator() {
+    return this.input.match(/[+\-*\/\^%=()]/);
   }
 
-  isIdentifier(input) {
+  isIdentifier() {
     //check if the character is a string but not whitespace
-    return typeof input === 'string' && !input.match(/[\s]/);
+    return typeof this.input === 'string' && !this.input.match(/[\s]/);
   }
 
-  tokenize(input) {
-    for (let i = 0; i < input.length; i++) {
-      if (this.isNumber(input[i])) {
+  tokenize() {
+    for (let i = 0; i < this.input.length; i++) {
+      if (this.isNumber(this.input[i])) {
         //check if the digit is part of a larger number
-        let number = input[i];
-        while (i < input.length - 1 && this.isNumber(input[++i])) {
-          number += input[i];
-          if (i === input.length - 1) {
+        let number = this.input[i];
+        while (i < this.input.length - 1 && this.isNumber(this.input[++i])) {
+          number += this.input[i];
+          if (i === this.input.length - 1) {
             break;
           }
         }
-        if (i < input.length - 1 && input[i] === '.') {
+        if (i < this.input.length - 1 && this.input[i] === '.') {
           //check if there is a decimal point in the number
-          number += input[i];
-          while (this.isNumber(input[++i])) {
-            number += input[i];
-            if (i === input.length - 1) {
+          number += this.input[i];
+          while (this.isNumber(this.input[++i])) {
+            number += this.input[i];
+            if (i === this.input.length - 1) {
               break;
             }
           }
         }
         this.addToken('number', parseFloat(number)); //convert the number to a float to account for potential decimals
-      } else if (this.isOperator(input[i])) {
+      } else if (this.isOperator(this.input[i])) {
         //check if the char is an operator
-        this.addToken('operator', input[i]);
-      } else if (this.isIdentifier(input[i])) {
-        let identifier = input[i];
-        while (i < input.length - 1 && this.isIdentifier(input[++i])) {
+        this.addToken('operator', this.input[i]);
+      } else if (this.isIdentifier(this.input[i])) {
+        let identifier = this.input[i];
+        while (
+          i < this.input.length - 1 &&
+          this.isIdentifier(this.input[++i])
+        ) {
           //check chars ahead to see if they are part of a longer identifier
-          identifier += input[i];
-          if (i === input.length - 1) {
+          identifier += this.input[i];
+          if (i === this.input.length - 1) {
             break;
           }
         }
-        this.addToken('identifier', input[i]);
+        this.addToken('identifier', this.input[i]);
       }
     }
   }
 }
-
-//console.log(lexer('12 + 4 / 6'));
