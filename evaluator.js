@@ -1,6 +1,12 @@
+import operators from './operators';
+import functions from './functions';
+import operators from './operators';
+import specialConstants from './specialConstants';
+
 export default class Evaluator {
   constructor(parseTree) {
     this.parseTree = parseTree;
+    this.operators = operators;
   }
   parse(node) {
     //code goes here
