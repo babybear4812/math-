@@ -11,12 +11,19 @@ export default class Evaluator {
     this.functions = functions;
     this.operators = operators;
     this.specialConstants = specialConstants;
+    this.args = {};
   }
   parse(node) {
     if (node.type === 'number') {
       return node.value;
     } else if (node.type === 'identifier') {
-      //
+      let value;
+      if (this.args[node.value]) {
+        value = this.args[node.value];
+      } else {
+        value = this.specialConstants[node.value];
+      }
+      return value;
     } else if (node.type === 'assign') {
       //
     } else if (node.type === 'call') {
