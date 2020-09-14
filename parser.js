@@ -26,8 +26,8 @@ export default class Parser {
   }
 
   symbol(id, leftBindingPower, nullDenotativeFunction, leftDenotativeFunction) {
-    let symbol = symbols[id] || {};
-    symbols[id] = {
+    let symbol = this.symbols[id] || {};
+    this.symbols[id] = {
       leftBindingPower: symbol.leftBindingPower || leftBindingPower,
       nullDenotativeFunction:
         symbol.nullDenotativeFunction || nullDenotativeFunction,
@@ -51,6 +51,21 @@ export default class Parser {
     return this.parseTree;
   }
 
+  generateExpressionTree(rightBindingPower) {
+    let left,
+      token = this.interpretToken();
+
+    if (!token.nullDenotativeFunction) {
+      throw `Unexpected Token: ${token.type}`;
+    }
+    left = token.nullDenotativeFunction(token); //need to clean this up somehow, doesn't make sense
+
+    while (rightBindingPower < this.interpretToken(token).leftBindingPower) {
+      token = this.interpretToken(token);
+      //continue filling this
+    }
+  }
+
   //creates infix arithmetic operators (i.e. those that go in between numbers)
   infix(id, leftBindingPower, rightBindingPower, leftDenotativeFunction) {
     rightBindingPower = rightBindingPower || leftBindingPower;
@@ -63,7 +78,7 @@ export default class Parser {
           return {
             type: id,
             left,
-            right: expression(rightBindingPower),
+            right: this.expression(rightBindingPower),
           };
         }
     );
@@ -74,7 +89,7 @@ export default class Parser {
     this.symbol(id, function () {
       return {
         type: id,
-        right: expression(rightBindingPower),
+        right: this.expression(rightBindingPower),
       };
     });
   }

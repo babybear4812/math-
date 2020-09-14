@@ -23,9 +23,13 @@ export default class Evaluator {
       } else {
         value = this.specialConstants[node.value];
       }
+
+      if (typeof value === 'undefined') {
+        throw `Undefined: ${value}`;
+      }
       return value;
     } else if (node.type === 'assign') {
-      //
+      specialConstants[node.id] = parse(node.value);
     } else if (node.type === 'call') {
       //
     } else if (node.type === 'function') {
