@@ -88,7 +88,7 @@ class MathPlusPlus {
         addToken('identifier', identifier);
       } else {
         //error checking
-        throw `Whoop! I can't recognize this character: ${c}`;
+        throw `Whoops! I can't recognize this character: ${c}`;
       }
     }
     return this.tokens;
@@ -122,6 +122,78 @@ class MathPlusPlus {
         value: token.value,
       };
     }
+
+    let idx = 0;
+    function token() {
+      return interpretToken(this.tokens[idx]);
+    }
+
+    function generateExpressionTree(rightBindingPower) {
+      let left;
+      let token = token();
+
+      nextChar();
+      if (!token.nullDenotativeFunction) {
+        throw `Whoops! I can't recognize this character: ${token.type}`;
+      }
+      left = token.nullDenotativeFunction(token); //need to clean this up somehow, doesn't make sense
+
+      while (rightBindingPower < token().leftBindingPower) {
+        token = token();
+        nextChar();
+        if (!token.leftDenotativeFunction) {
+          throw `Whoops! I can't recognize this character: ${token.type}`;
+        }
+        left = token.leftDenotativeFunction(left);
+      }
+      return left;
+    }
+
+    function infix(
+      id,
+      leftBindingPower,
+      rightBindingPower,
+      leftDenotativeFunction
+    ) {
+      rightBindingPower = rightBindingPower || leftBindingPower;
+      this.symbol(
+        id,
+        leftBindingPower,
+        null,
+        leftDenotativeFunction ||
+          function (left) {
+            return {
+              type: id,
+              left,
+              right: this.expression(rightBindingPower),
+            };
+          }
+      );
+    }
+
+    //creates prefix arithmetic operators (i.e. those that go before numbers)
+    function prefix(id, rightBindingPower) {
+      this.symbol(id, function () {
+        return {
+          type: id,
+          right: this.expression(rightBindingPower),
+        };
+      });
+    }
+
+    prefix('-', 7);
+    infix('^', 6, 5);
+    infix('*', 4);
+    infix('/', 4);
+    infix('%', 4);
+    infix('+', 3);
+    infix('-', 3);
+
+    symbol(')');
+    symbol('(end)');
+    symbol(')', () => {
+      value = generateExpressionTree(2);
+    });
 
     return this.parseTree;
   }
