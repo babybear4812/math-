@@ -8,11 +8,22 @@ import specialConstants from './specialConstants';
 // All code in one file
 
 class MathPlusPlus {
-  constructor(tokens = [], idx = 0) {
+  constructor() {
     this.tokens = tokens;
     this.idx = 0;
+    this.parseTree = null;
   }
 
+  //moves the index along to the next character, and returns it
+  //useful for parsing through characters sequentially when determining whether
+  //they create number or identifier of length > 1
+  // Will be used by both Lexer and Parser
+  nextChar() {
+    this.idx += 1;
+    return input[this.idx];
+  }
+
+  // STEP 1: LEXICAL ANALYSIS
   lexer(input) {
     let tokens = [];
     function isDigit() {
@@ -28,14 +39,6 @@ class MathPlusPlus {
     function isIdentifier() {
       //check if the character is a string but not whitespace
       return typeof input === 'string' && !input.match(/[\s]/);
-    }
-
-    function nextChar() {
-      //moves the index along to the next character, and returns it
-      //useful for parsing through characters sequentially when determining whether
-      //they create number or identifier of length > 1
-      this.idx += 1;
-      return input[this.idx];
     }
 
     function addToken(type, value) {
@@ -88,15 +91,58 @@ class MathPlusPlus {
         throw `Whoop! I can't recognize this character: ${c}`;
       }
     }
-
-    return tokens;
+    return this.tokens;
   }
 
+  // STEP 2: CREATING PARSE TREE
   parser() {
-    //
+    let symbols = {};
+
+    //adds a symbol to an object of all symbols
+    function symbol(
+      id,
+      leftBindingPower,
+      nullDenotativeFunction,
+      leftDenotativeFunction
+    ) {
+      let symbol = symbols[id] || {};
+      symbols[id] = {
+        leftBindingPower: symbol[leftBindingPower] || leftBindingPower,
+        nullDenotativeFunction:
+          symbol[nullDenotativeFunction] || nullDenotativeFunction,
+        leftDenotativeFunction:
+          symbol[leftDenotativeFunction] || leftDenotativeFunction,
+      };
+    }
+
+    //used to associate token with corresponding symbol
+    function interpretToken(token) {
+      return {
+        type: token.type,
+        value: token.value,
+      };
+    }
+
+    return this.parseTree;
   }
 
   evaluator() {
-    //
+    function getNodeVal(node) {
+      if (node.type === 'number') {
+        return node.value;
+      } else if (node.type === 'operator') {
+        //
+      } else if (node.type === 'identifier') {
+        //
+      }
+    }
+    result = '';
+    for (let i = 0; i < this.parseTree.length; i++) {
+      nodeVal = getNodeVal(this.parseTree[i]);
+      if (nodeVal !== 'undefined') {
+        result += nodeVal + '\n';
+      }
+    }
+    return result;
   }
 }
