@@ -8,7 +8,8 @@ import specialConstants from './specialConstants';
 // All code in one file
 
 class MathPlusPlus {
-  constructor() {
+  constructor(input) {
+    this.input = input;
     this.tokens = tokens;
     this.idx = 0;
     this.parseTree = null;
@@ -20,25 +21,25 @@ class MathPlusPlus {
   // Will be used by both Lexer and Parser
   nextChar() {
     this.idx += 1;
-    return input[this.idx];
+    return this.input[this.idx];
   }
 
   // STEP 1: LEXICAL ANALYSIS
-  lexer(input) {
+  lexer() {
     let tokens = [];
     function isDigit() {
       //check if the character is a digit
-      return input.match(/[0-9]/);
+      return this.input.match(/[0-9]/);
     }
 
     function isOperator() {
       //check if the character is an operator
-      return input.match(/[+\-*\/\^%=()]/);
+      return this.input.match(/[+\-*\/\^%=()]/);
     }
 
     function isIdentifier() {
       //check if the character is a string but not whitespace
-      return typeof input === 'string' && !input.match(/[\s]/);
+      return typeof this.input === 'string' && !this.input.match(/[\s]/);
     }
 
     function addToken(type, value) {
@@ -50,9 +51,9 @@ class MathPlusPlus {
     }
 
     //loop through the input
-    while (this.idx < input.length) {
+    while (this.idx < this.input.length) {
       //current char
-      c = input[this.idx];
+      c = this.input[this.idx];
 
       if (c.match(/[\s]/)) {
         //if character is whitespace, continue to reading the next character
@@ -97,6 +98,9 @@ class MathPlusPlus {
   // STEP 2: CREATING PARSE TREE
   parser() {
     let symbols = {};
+    while (token().type !== '(end)') {
+      this.parseTree.push(generateExpressionTree(0));
+    }
 
     //adds a symbol to an object of all symbols
     function symbol(
@@ -181,7 +185,10 @@ class MathPlusPlus {
       });
     }
 
+    //the negation prefix
     prefix('-', 7);
+
+    // infix symbols with binding power(s)
     infix('^', 6, 5);
     infix('*', 4);
     infix('/', 4);
@@ -189,11 +196,42 @@ class MathPlusPlus {
     infix('+', 3);
     infix('-', 3);
 
-    symbol(')');
+    // the assignment symbol has a left denotative function
+    // and behaves differently if assigning values for a call or an identifer
+    infix('=', 1, 2, (left) => {
+      if (left.type === 'call') {
+        for (let i = 0; i < left.args.length; i++) {
+          if (left.args[i].type !== 'identifer') {
+            throw `Whoops! That argument name is invalid`;
+          }
+        }
+        return {
+          type: 'function',
+          name: left.name,
+          args: left.args,
+          value: generateExpressionTree(2),
+        };
+      } else if (left.type === 'identifier') {
+        return {
+          type: 'assign',
+          name: left.value,
+          value: generateExpressionTree(2),
+        };
+      } else {
+        throw `Whoops! Something went wrong around the '=' sign.`;
+      }
+    });
+
+    // Defining IDs and null denotative functions for basic symbols
     symbol('(end)');
-    symbol(')', () => {
+    symbol(')');
+    symbol(')', null, () => {
       value = generateExpressionTree(2);
     });
+    symbol('number', null, (number) => {
+      return number;
+    });
+    symbol('identifier', null, () => {});
 
     return this.parseTree;
   }
@@ -216,5 +254,15 @@ class MathPlusPlus {
       }
     }
     return result;
+  }
+
+  calculate() {
+    try {
+      this.lexer();
+      this.parser();
+      return this.evaluator();
+    } catch (error) {
+      return error;
+    }
   }
 }
