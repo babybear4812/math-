@@ -2,7 +2,6 @@ import Lexer from './lexer';
 import Parser from './parser';
 import operators from './operators';
 import functions from './functions';
-import operators from './operators';
 import specialConstants from './specialConstants';
 
 export default class Evaluator {
