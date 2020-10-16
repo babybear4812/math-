@@ -8,6 +8,10 @@ import specialConstants from './specialConstants';
 // All code in one file
 
 class MathPlusPlus {
+  /**
+   * @summary constructor function
+   * @param {string} input - the user's input
+   */
   constructor(input) {
     this.input = input;
     this.tokens = tokens;
@@ -15,35 +19,48 @@ class MathPlusPlus {
     this.parseTree = null;
   }
 
-  //moves the index along to the next character, and returns it
-  //useful for parsing through characters sequentially when determining whether
-  //they create number or identifier of length > 1
-  // Will be used by both Lexer and Parser
+  /**
+   * @summary moves the character index along to the next character, used by both Lexer and Parser
+   * @returns the next character valuevalue
+   */
   nextChar() {
     this.idx += 1;
     return this.input[this.idx];
   }
 
-  // STEP 1: LEXICAL ANALYSIS
+  /**
+   * @summary Step 1: Lexical Analysis of the given input separates every character / identifier into a token
+   */
   lexer() {
     let tokens = [];
+
+    /**
+     * @summary Checks if the given character is a digit
+     */
     function isDigit() {
-      //check if the character is a digit
       return this.input.match(/[0-9]/);
     }
 
+    /**
+     * @summary Checks if the given character is an operator
+     */
     function isOperator() {
-      //check if the character is an operator
       return this.input.match(/[+\-*\/\^%=()]/);
     }
 
+    /**
+     * @summary Checks if the given character is a string, but is not whitespace
+     */
     function isIdentifier() {
-      //check if the character is a string but not whitespace
       return typeof this.input === 'string' && !this.input.match(/[\s]/);
     }
 
+    /**
+     * @summary A utility function used to add a given token into the list of all tokens
+     * @param {string} type Specifies if the token is an operator, a number, or an identifier
+     * @param {string} value Specifie's the token's value (i.e. the operator, the number, or the identifier)
+     */
     function addToken(type, value) {
-      //utility function to add the found token into the list of all tokens
       this.tokens.push({
         type,
         value,
@@ -52,7 +69,6 @@ class MathPlusPlus {
 
     //loop through the input
     while (this.idx < this.input.length) {
-      //current char
       c = this.input[this.idx];
 
       if (c.match(/[\s]/)) {
@@ -88,21 +104,29 @@ class MathPlusPlus {
 
         addToken('identifier', identifier);
       } else {
-        //error checking
         throw `Whoops! I can't recognize this character: ${c}`;
       }
     }
     return this.tokens;
   }
 
-  // STEP 2: CREATING PARSE TREE
+  /**
+   * @summary Step 2: Parsing the tokens in order to create a parse tree.
+   * This function is the longest of the 3 steps, and is required to determine each tokens' binding powers
+   */
   parser() {
     let symbols = {};
     while (token().type !== '(end)') {
       this.parseTree.push(generateExpressionTree(0));
     }
 
-    //adds a symbol to an object of all symbols
+    /**
+     * @summary Adds a symbol to an object of all symbols
+     * @param {*} id The character's actual symbol
+     * @param {*} leftBindingPower A measure of how strongly
+     * @param {*} nullDenotativeFunction
+     * @param {*} leftDenotativeFunction
+     */
     function symbol(
       id,
       leftBindingPower,
@@ -185,7 +209,7 @@ class MathPlusPlus {
       });
     }
 
-    //the negation prefix
+    // the negation prefix
     prefix('-', 7);
 
     // infix symbols with binding power(s)
