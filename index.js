@@ -1,12 +1,11 @@
-// import Lexer from './lexer';
-// import Parser from './parser';
-// import Evaluator from './evaluator';
 import operators from './operators';
 import functions from './functions';
 import specialConstants from './specialConstants';
 
-// All code in one file
-
+/**
+ * @summary A class containing each of the lexer, parser, and evaluator.
+ * It can be initialized with user input
+ */
 class MathPlusPlus {
   /**
    * @summary constructor function
@@ -23,7 +22,7 @@ class MathPlusPlus {
    * @summary moves the character index along to the next character, used by both Lexer and Parser
    * @returns the next character valuevalue
    */
-  nextChar() {
+  getNextChar() {
     this.idx += 1;
     return this.input[this.idx];
   }
@@ -32,8 +31,6 @@ class MathPlusPlus {
    * @summary Step 1: Lexical Analysis of the given input separates every character / identifier into a token
    */
   lexer() {
-    let tokens = [];
-
     /**
      * @summary Checks if the given character is a digit
      */
@@ -81,14 +78,14 @@ class MathPlusPlus {
         //if character is a digit, continue to loop through until you're no longer looking at a digit
         //the digits you've collected will form a full number
         num = c;
-        while (isDigit(nextChar())) {
+        while (isDigit(getNextChar())) {
           num += c;
         }
         //if we run into a decimal, we have a decimal number
         //add the period to the number and redo the previous loop to get all digits after decimal point
         if (c === '.') {
           num = c;
-          while (isDigit(nextChar())) {
+          while (isDigit(getNextChar())) {
             num += c;
           }
         }
@@ -98,7 +95,7 @@ class MathPlusPlus {
         //if a character isn't whitespace, an operator, or a digit, it must be an identifier
         //loop through until you've collected all subsequent chars related to the identifier
         identifier = c;
-        while (isIdentifier(nextChar())) {
+        while (isIdentifier(getNextChar())) {
           identifier += c;
         }
 
@@ -116,34 +113,38 @@ class MathPlusPlus {
    */
   parser() {
     let symbols = {};
-    while (token().type !== '(end)') {
+    while (getInterpretedToken().type !== '(end)') {
       this.parseTree.push(generateExpressionTree(0));
     }
 
     /**
      * @summary Adds a symbol to an object of all symbols
      * @param {*} id The character's actual symbol
-     * @param {*} leftBindingPower A measure of how strongly
-     * @param {*} nullDenotativeFunction
-     * @param {*} leftDenotativeFunction
+     * @param {*} leftBindingPower A measure of how strongly a symbol is bound to its lefthand side
+     * @param {*} nullDenotativeFunction Used by variables, literals, and prefix operators
+     * @param {*} leftDenotativeFunction Used by infix and suffix operators
      */
-    function symbol(
+    function generateSymbol(
       id,
       leftBindingPower,
       nullDenotativeFunction,
       leftDenotativeFunction
     ) {
-      let symbol = symbols[id] || {};
+      if (symbols[id]) {
+        return;
+      }
+
       symbols[id] = {
-        leftBindingPower: symbol[leftBindingPower] || leftBindingPower,
-        nullDenotativeFunction:
-          symbol[nullDenotativeFunction] || nullDenotativeFunction,
-        leftDenotativeFunction:
-          symbol[leftDenotativeFunction] || leftDenotativeFunction,
+        leftBindingPower: leftBindingPower,
+        nullDenotativeFunction: nullDenotativeFunction,
+        leftDenotativeFunction: leftDenotativeFunction,
       };
     }
 
-    //used to associate token with corresponding symbol
+    /**
+     * @summary Used to interpret a token's type and value
+     * @param {object} token A token object
+     */
     function interpretToken(token) {
       return {
         type: token.type,
@@ -151,24 +152,32 @@ class MathPlusPlus {
       };
     }
 
-    let idx = 0;
-    function token() {
-      return interpretToken(this.tokens[idx]);
+    this.idx = 0;
+
+    /**
+     * @summary Returns an object representing a token's type and value
+     */
+    function getInterpretedToken() {
+      return interpretToken(this.tokens[this.idx]);
     }
 
+    /**
+     * @summary
+     * @param {*} rightBindingPower
+     */
     function generateExpressionTree(rightBindingPower) {
       let left;
-      let token = token();
+      let token = getInterpretedToken();
 
-      nextChar();
+      getNextChar();
       if (!token.nullDenotativeFunction) {
         throw `Whoops! I can't recognize this character: ${token.type}`;
       }
       left = token.nullDenotativeFunction(token); //need to clean this up somehow, doesn't make sense
 
-      while (rightBindingPower < token().leftBindingPower) {
-        token = token();
-        nextChar();
+      while (rightBindingPower < getInterpretedToken().leftBindingPower) {
+        token = getInterpretedToken();
+        getNextChar();
         if (!token.leftDenotativeFunction) {
           throw `Whoops! I can't recognize this character: ${token.type}`;
         }
@@ -177,6 +186,13 @@ class MathPlusPlus {
       return left;
     }
 
+    /**
+     * @summary Generating a symbol for an infix operator (i.e. operators that go in between two identifiers / numbers)
+     * @param {*} id The character's actual symbol
+     * @param {*} leftBindingPower A measure of how strongly a symbol is bound to its lefthand side
+     * @param {*} nullDenotativeFunction Used by variables, literals, and prefix operators
+     * @param {*} leftDenotativeFunction Used by infix and suffix operators
+     */
     function infix(
       id,
       leftBindingPower,
@@ -184,7 +200,7 @@ class MathPlusPlus {
       leftDenotativeFunction
     ) {
       rightBindingPower = rightBindingPower || leftBindingPower;
-      this.symbol(
+      generateSymbol(
         id,
         leftBindingPower,
         null,
@@ -193,18 +209,22 @@ class MathPlusPlus {
             return {
               type: id,
               left,
-              right: this.expression(rightBindingPower),
+              right: generateExpressionTree(rightBindingPower),
             };
           }
       );
     }
 
-    //creates prefix arithmetic operators (i.e. those that go before numbers)
+    /**
+     * @summary Generating a symbol for a prefix operator (i.e. operators that go before a number, like the - sign)
+     * @param {*} id The character's actual symbol
+     * @param {*} leftBindingPower A measure of how strongly a symbol is bound to its righthand side
+     */
     function prefix(id, rightBindingPower) {
-      this.symbol(id, function () {
+      generateSymbol(id, function () {
         return {
           type: id,
-          right: this.expression(rightBindingPower),
+          right: generateExpressionTree(rightBindingPower),
         };
       });
     }
@@ -212,9 +232,9 @@ class MathPlusPlus {
     // the negation prefix
     prefix('-', 7);
 
-    // infix symbols with binding power(s)
-    infix('^', 6, 5);
-    infix('*', 4);
+    // infix symbols with binding power(s) in descending order
+    infix('^', 6, 5); // higher left than right binding power because of right-associativeness of exponentiation
+    infix('*', 4); // these follow BEDMAS order of operations
     infix('/', 4);
     infix('%', 4);
     infix('+', 3);
@@ -247,20 +267,30 @@ class MathPlusPlus {
     });
 
     // Defining IDs and null denotative functions for basic symbols
-    symbol('(end)');
-    symbol(')');
-    symbol(')', null, () => {
+    generateSymbol('(end)'); // symbol to denote the end of the parsing tree
+    generateSymbol(')');
+    generateSymbol(')', null, () => {
       value = generateExpressionTree(2);
     });
-    symbol('number', null, (number) => {
+    generateSymbol('number', null, (number) => {
       return number;
     });
-    symbol('identifier', null, () => {});
+    generateSymbol('identifier', null, () => {
+      //
+    });
 
     return this.parseTree;
   }
 
+  /**
+   * @summary Step 3: Evaluating the individual nodes of the parse tree
+   * @returns {string} Returns the interpreted user input
+   */
   evaluator() {
+    /**
+     * @summary extracting the node value depending on the individual node object's type
+     * @param {object} node An individual token in the parse tree
+     */
     function getNodeVal(node) {
       if (node.type === 'number') {
         return node.value;
@@ -270,6 +300,8 @@ class MathPlusPlus {
         //
       }
     }
+
+    // Looping through the parse tree and calling getNodeVal to evaluate individual nodes
     result = '';
     for (let i = 0; i < this.parseTree.length; i++) {
       nodeVal = getNodeVal(this.parseTree[i]);
@@ -280,6 +312,10 @@ class MathPlusPlus {
     return result;
   }
 
+  /**
+   * @summary This function is called to execute the lexer, parser, and evaluator
+   * @returns the output of the evaluator
+   */
   calculate() {
     try {
       this.lexer();
