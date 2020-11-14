@@ -13,7 +13,7 @@ class MathPlusPlus {
    */
   constructor(input) {
     this.input = input;
-    this.tokens = tokens;
+    this.tokens = [];
     this.idx = 0;
     this.parseTree = null;
   }
@@ -130,15 +130,13 @@ class MathPlusPlus {
       nullDenotativeFunction,
       leftDenotativeFunction
     ) {
-      if (symbols[id]) {
-        return;
+      if (!symbols[id]) {
+        symbols[id] = {
+          leftBindingPower: leftBindingPower,
+          nullDenotativeFunction: nullDenotativeFunction,
+          leftDenotativeFunction: leftDenotativeFunction,
+        };
       }
-
-      symbols[id] = {
-        leftBindingPower: leftBindingPower,
-        nullDenotativeFunction: nullDenotativeFunction,
-        leftDenotativeFunction: leftDenotativeFunction,
-      };
     }
 
     /**
