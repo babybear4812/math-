@@ -296,6 +296,12 @@ class MathPlusPlus {
         //
       } else if (node.type === 'identifier') {
         //
+      } else if (node.type === 'assign') {
+        //
+      } else if (node.type === 'call') {
+        //
+      } else if (node.type === 'function') {
+        //
       }
     }
 
