@@ -160,7 +160,7 @@ class MathPlusPlus {
     }
 
     /**
-     * @summary Generating the parse tree of the latest expression according to
+     * @summary Generating the parse tree of the latest interpreted expression
      * @param {*} rightBindingPower
      */
     function generateExpressionTree(rightBindingPower) {
@@ -300,6 +300,9 @@ class MathPlusPlus {
     }
 
     // Looping through the parse tree and calling getNodeVal to evaluate individual nodes
+    // In the `result` variable we keep the final interpreted code; and every time we
+    // come across a node that is not undefined, we will add the information in that node
+    // to its own line of code in order to simulate a standard, legible piece of code
     result = '';
     for (let i = 0; i < this.parseTree.length; i++) {
       nodeVal = getNodeVal(this.parseTree[i]);
