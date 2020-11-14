@@ -132,9 +132,9 @@ class MathPlusPlus {
     ) {
       if (!symbols[id]) {
         symbols[id] = {
-          leftBindingPower: leftBindingPower,
-          nullDenotativeFunction: nullDenotativeFunction,
-          leftDenotativeFunction: leftDenotativeFunction,
+          leftBindingPower,
+          nullDenotativeFunction,
+          leftDenotativeFunction,
         };
       }
     }
@@ -160,18 +160,18 @@ class MathPlusPlus {
     }
 
     /**
-     * @summary
+     * @summary Generating the parse tree of the latest expression according to
      * @param {*} rightBindingPower
      */
     function generateExpressionTree(rightBindingPower) {
       let left;
-      let token = getInterpretedToken();
+      let token = getInterpretedToken(); //gets latest interpreted expression
 
       getNextChar();
       if (!token.nullDenotativeFunction) {
         throw `Whoops! I can't recognize this character: ${token.type}`;
       }
-      left = token.nullDenotativeFunction(token); //need to clean this up somehow, doesn't make sense
+      left = token.nullDenotativeFunction(token); //need to elaborate on this somehow, doesn't make sense as is
 
       while (rightBindingPower < getInterpretedToken().leftBindingPower) {
         token = getInterpretedToken();
