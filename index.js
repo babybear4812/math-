@@ -1,3 +1,36 @@
+/**
+ * (10 + 6) / 8
+ * Lexing gives you:
+ * [
+      ["operator", "("],
+      ["number", 10],
+      ["operator", "+"],
+      ["number", 6],
+      ["operator", ")"],
+      ["operator", "/"],
+      ["number", 8]
+   ]
+ * 
+ * Parsing gives you:
+ * {
+ *    operation: "/",
+ *    left: {
+ *      operation: "+",
+ *      left: 10,
+ *      right: 6
+ *    },
+ *    right: 8
+ * }
+ * 
+ * Evaluator simplifies the tree to look like:
+ * {
+ *    operation: "/",
+ *    left: 16,
+ *    right: 8
+ * }
+ * 
+ */
+
 import operators from './operators';
 import functions from './functions';
 import specialConstants from './specialConstants';
@@ -171,7 +204,12 @@ class MathPlusPlus {
       if (!token.nullDenotativeFunction) {
         throw `Whoops! I can't recognize this character: ${token.type}`;
       }
-      left = token.nullDenotativeFunction(token); //need to elaborate on this somehow, doesn't make sense as is
+
+      // we set the left property as a null function by default. In thie while loop below,
+      // we actually keep looping through elements while our right binding power is less
+      // than our left binding power. Every time we find this to be true, we set the
+      // left property to be equal to the LDF
+      left = token.nullDenotativeFunction(token);
 
       while (rightBindingPower < getInterpretedToken().leftBindingPower) {
         token = getInterpretedToken();
